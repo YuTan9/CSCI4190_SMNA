@@ -21,12 +21,8 @@ import matplotlib.pyplot as plt
 
 #parameters
 filename = "soc-Epinions1.txt"
-graph = snap.LoadEdgeList(snap.PNGraph, filename, 0, 1)
 net = snap.LoadEdgeList(snap.PNEANet, filename, 0, 1)
-# contagion_probability = 0.1
-# tl = 4 # max step of infection
-# contagion_probability = float(sys.argv[1])
-# contagion_probability=[]
+
 
 #############
 #PRINT USAGE#
@@ -49,12 +45,17 @@ print "Start simulating SIS model with:"
 print "contagion probability base: %d" % contagion_probability_base
 print "max step of infection: %d" % tl
 print "max echo: %d\n\n" %MAX_ECHO
+
+
 # Simulate SIS model
 # state: 
 #   0: susceptible
 #   1: infectious
 
 #init
+####################################
+#diffrerent prob on different nodes#
+####################################
 print "calculating contagion probability...\n\n"
 for NI in net.Nodes():
     nid = NI.GetId()
@@ -71,16 +72,19 @@ for NI in net.Nodes():
     
 
 #infect
+#variable init
 numberEcho = 0
 numberSusceptible = net.GetNodes() - len(initial_list)
 numberInfectious = len(initial_list)
+#variables for plotting
 susceptible = []
 infectious = []
 echo = []
+
 while numberEcho < MAX_ECHO:
     for NI in net.Nodes():
         nid = NI.GetId()
-        if net.GetIntAttrDatN(nid, "state") == 1:
+        if net.GetIntAttrDatN(nid, "state") == 1: #if node is infectious
             for connectedNode in NI.GetOutEdges():
                 probability = contagion_probability[nid]
                 #print "node: %d %d\tall: %d\tnbr: %d\tprob: %f" % (nid, connectedNode,all_nodes, nbr_nodes, contagion_probability)
@@ -88,10 +92,10 @@ while numberEcho < MAX_ECHO:
                     result = net.AddIntAttrDatN(connectedNode, 1, "state")
                     numberInfectious += 1
                     numberSusceptible -= 1
-            
-            nowStep = net.GetIntAttrDatN(nid, "step") + 1
+            #update node infectious step
+            nowStep = net.GetIntAttrDatN(nid, "step") + 1 
             result = net.AddIntAttrDatN(nid, nowStep, "step")
-            if nowStep == tl:
+            if nowStep == tl: #if node infectious step reached
                 result = net.AddIntAttrDatN(nid, 0, "state")
                 numberSusceptible += 1
                 numberInfectious -= 1
@@ -102,6 +106,7 @@ while numberEcho < MAX_ECHO:
     numberEcho+=1
     echo.append(numberEcho)
 
+#color the net
 NIdColorH = snap.TIntStrH()
 for NI in net.Nodes():
     nid = NI.GetId()
@@ -111,22 +116,19 @@ for NI in net.Nodes():
         NIdColorH[nid] = "red"
     else:
         print "Error! There is infectious node in the network!"
-# F = open("SIS.txt","w") 
-# for color in NIdColorH:
-#     F.write("%d: %s" % (color, NIdColorH[color]))
 
-
-# echo = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+#plotting the population over time
 plt.plot(echo, susceptible, color='g')
 plt.plot(echo, infectious, color='r')
 plt.xlabel('Echos')
 plt.ylabel('Nodes')
 plt.title('SIS simulation over %d echos' % MAX_ECHO)
 plt.savefig("SIS_%dtl_%dpb_%decho.png" % (tl, contagion_probability_base, MAX_ECHO))
-# plt.savefig("SISTime%dtl%fcp.png" % (tl, contagion_probability))
-# plt.show()
 
-#snap.DrawGViz(net, snap.gvlCirco, "SISnetwork.png", "SIS Network", False, NIdColorH)
+# Save the net in .dot file (plot with Gephi), snap.DrawGViz() too slow on big graph
+snap.SaveGViz(net, "SISnet.dot", "SIR simulation network", True, NIdColorH)
+
+#generate subgraph
 V = snap.TIntV()
 sub_node = []
 for i in initial_list:
@@ -136,6 +138,5 @@ for i in initial_list:
 for nid in sub_node:
     V.Add(nid)
 sub = snap.ConvertSubGraph(snap.PNEANet, net, V)
-
+#Save subgraph
 snap.SaveGViz(sub, "SISsub.dot", "SIR simulation subnet", True, NIdColorH)
-snap.SaveGViz(net, "SISnet.dot", "SIR simulation network", True, NIdColorH)
