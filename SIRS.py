@@ -122,6 +122,7 @@ def colorNet(net):
             print "Error! There is infectious node in the network!"
     return net
 
+colorNet(net)
 V = snap.TIntV()
 sub_node = []
 for i in initial_list:
