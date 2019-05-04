@@ -20,7 +20,6 @@ if len(sys.argv) != 5:
 
 
 filename = "soc-Epinions1.txt"
-graph = snap.LoadEdgeList(snap.PNGraph, filename, 0, 1)
 net = snap.LoadEdgeList(snap.PNEANet, filename, 0, 1)
 
 # Simulate SIR model
@@ -110,19 +109,20 @@ plt.ylabel('Nodes')
 plt.title('SIRS simulation over %d echos' % MAX_ECHO)
 plt.savefig("SIRS_%dtl_%dpb_%decho.png" % (tl, contagion_probability_base, MAX_ECHO))
 
-def colorNet(net):
-    NIdColorH = snap.TIntStrH()
-    for NI in net.Nodes():
-        nid = NI.GetId()
-        if net.GetIntAttrDatN(nid, "state") == 0:
-            NIdColorH[nid] = "green"
-        elif net.GetIntAttrDatN(nid, "state") == 2:
-            NIdColorH[nid] = "red"
-        else:
-            print "Error! There is infectious node in the network!"
-    return net
 
-colorNet(net)
+NIdColorH = snap.TIntStrH()
+for NI in net.Nodes():
+    nid = NI.GetId()
+    if net.GetIntAttrDatN(nid, "state") == 0:
+        NIdColorH[nid] = "susceptible"
+    elif net.GetIntAttrDatN(nid, "state") == 1:
+        NIdColorH[nid] = "infectious"
+    elif net.GetIntAttrDatN(nid, "state") == 2:
+        NIdColorH[nid] = "immunity"
+    else:
+        print "Error! There is infectious node in the network!"
+
+
 V = snap.TIntV()
 sub_node = []
 for i in initial_list:
