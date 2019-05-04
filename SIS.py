@@ -27,6 +27,18 @@ net = snap.LoadEdgeList(snap.PNEANet, filename, 0, 1)
 # tl = 4 # max step of infection
 # contagion_probability = float(sys.argv[1])
 # contagion_probability=[]
+
+#############
+#PRINT USAGE#
+#############
+if len(sys.argv) != 4:
+    print "Usage: python %s <contagion_probability_base> <max_step_of_infection> <max_echo>" % sys.argv[0]
+    print "\tcontagion_probability_base: Control the likelihood of spreading infection. The smaller the more likely, with minimum of 1801."
+    print "\tmax step of infection: How many echo can a node be infectious."
+    print "\tmax echo: How many echo to perform simulation."
+    exit(0)
+
+
 contagion_probability_base = int(sys.argv[1]) # no less than 1801
 tl = int(sys.argv[2]) 
 MAX_ECHO = int(sys.argv[3])
